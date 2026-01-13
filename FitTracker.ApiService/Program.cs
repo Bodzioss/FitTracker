@@ -1,0 +1,45 @@
+using FitTracker.ApiService.Modules.Strength.Features.CreateWorkout;
+using FluentValidation;
+using MongoDB.Driver;
+using Carter;
+
+var builder = WebApplication.CreateBuilder(args);
+
+// Add service defaults & Aspire client integrations.
+builder.AddServiceDefaults();
+
+// Add services to the container.
+builder.Services.AddProblemDetails();
+builder.Services.AddOpenApi();
+
+// Domain Services
+builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
+builder.Services.AddValidatorsFromAssembly(typeof(Program).Assembly);
+builder.Services.AddCarter();
+
+// Database (MongoDB)
+builder.Services.AddSingleton<IMongoClient>(sp => 
+{
+    var connectionString = builder.Configuration.GetConnectionString("FitTracker") ?? "mongodb://localhost:27017";
+    return new MongoClient(connectionString);
+});
+builder.Services.AddScoped<IMongoDatabase>(sp => sp.GetRequiredService<IMongoClient>().GetDatabase("FitTracker"));
+
+var app = builder.Build();
+
+// Configure the HTTP request pipeline.
+app.UseExceptionHandler();
+
+if (app.Environment.IsDevelopment())
+{
+    app.MapOpenApi();
+}
+
+app.MapDefaultEndpoints();
+
+// Modules
+app.MapCreateWorkout();
+app.MapCarter();
+
+app.Run();
+

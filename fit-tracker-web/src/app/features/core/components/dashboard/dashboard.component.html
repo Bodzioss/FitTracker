@@ -1,0 +1,17 @@
+<div class="dashboard-container">
+    <header class="dashboard-header">
+        <h1>Witaj w FitTracker! 👋</h1>
+        <p>Gotowy na trening?</p>
+    </header>
+
+    <div class="menu-grid">
+        <mat-card *ngFor="let item of menuItems" class="menu-card" matRipple (click)="navigate(item.route)"
+            [style.border-left-color]="item.color">
+
+            <mat-card-content class="card-content">
+                <mat-icon [style.color]="item.color">{{item.icon}}</mat-icon>
+                <span class="label">{{item.label}}</span>
+            </mat-card-content>
+        </mat-card>
+    </div>
+</div>

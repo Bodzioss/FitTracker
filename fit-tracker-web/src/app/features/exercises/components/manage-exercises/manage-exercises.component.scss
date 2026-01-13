@@ -1,0 +1,53 @@
+.container {
+    padding: 1rem;
+    max-width: 1000px;
+    margin: 0 auto;
+    padding-bottom: 80px; // Space for FAB
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.add-form-card {
+    margin-bottom: 2rem;
+}
+
+.exercise-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+}
+
+/* Mobile FAB */
+.fab-mobile {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    z-index: 100;
+}
+
+/* Specific Views */
+.exercise-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.exercise-item {
+    background: white;
+    // Mobile optimization: larger touch targets implicitly via padding
+}
+
+table {
+    width: 100%;
+}

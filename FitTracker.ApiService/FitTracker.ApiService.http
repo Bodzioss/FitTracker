@@ -1,0 +1,22 @@
+@ApiService_HostAddress = https://localhost:7521
+
+POST {{ApiService_HostAddress}}/api/workouts
+Content-Type: application/json
+
+{
+  "date": "2026-01-13T12:00:00Z",
+  "notes": "First workout via Aspire",
+  "exercises": [
+    {
+      "exerciseId": "507f1f77bcf86cd799439011",
+      "name": "Bench Press",
+      "sets": [
+        { "weight": 100, "reps": 5, "rpe": 8 }
+      ]
+    }
+  ]
+}
+
+###
+
+GET {{ApiService_HostAddress}}/health
