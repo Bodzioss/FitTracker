@@ -1,6 +1,8 @@
 const { env } = require('process');
 
 const target = env.services__apiservice__https__0 || env.services__apiservice__http__0;
+console.log('Detected Proxy Target:', target); // DEBUG LOG
+
 
 const PROXY_CONFIG = [
   {

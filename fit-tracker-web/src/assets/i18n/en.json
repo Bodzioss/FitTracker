@@ -1,0 +1,49 @@
+{
+    "DASHBOARD": {
+        "NEW_WORKOUT": "New Workout",
+        "EXERCISE_DB": "Exercise DB",
+        "HISTORY": "History",
+        "STATS": "Statistics",
+        "WELCOME": "Welcome to FitTracker!",
+        "READY": "Ready to workout?",
+        "MEASUREMENTS": "Body Measurements"
+    },
+    "MEASUREMENTS": {
+        "TITLE": "Current Measurement",
+        "SUBTITLE": "Take measurements with relaxed muscles.",
+        "WEIGHT": "Weight",
+        "HEIGHT": "Height",
+        "CHEST": "Chest",
+        "WAIST": "Waist",
+        "HIPS": "Hips",
+        "BICEP": "Bicep",
+        "THIGH": "Thigh",
+        "CALF": "Calf",
+        "SAVE": "Save Measurement",
+        "SUCCESS": "Measurement saved!",
+        "HISTORY": "Measurement History",
+        "DATE": "Date",
+        "NOT_ENOUGH_DATA": "Not enough data for chart (min. 2 measurements required)"
+    },
+    "WORKOUTS": {
+        "TEMPLATES_TITLE": "My Workout Plans",
+        "CREATE_NEW": "Create New Plan",
+        "EXERCISES": "exercises",
+        "START": "START",
+        "CREATE_TITLE": "Plan Creator",
+        "NAME_LABEL": "Plan Name (e.g. Push A)",
+        "ADD_EXERCISE": "Add Exercise",
+        "SAVE_TEMPLATE": "Save Plan",
+        "NO_EXERCISES_HINT": "Add exercises from the list above first",
+        "SETS": "sets",
+        "WEIGHT": "Weight",
+        "REPS": "Reps",
+        "ADD_SET": "Add Set",
+        "CANCEL": "Cancel",
+        "FINISH": "Finish Workout",
+        "SESSION_SAVED": "Workout saved! Good job! 💪",
+        "HISTORY_TITLE": "Workout History",
+        "NO_HISTORY": "No workouts logged yet. Start training!",
+        "UNKNOWN_TEMPLATE": "Freestyle Workout"
+    }
+}

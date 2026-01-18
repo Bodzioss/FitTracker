@@ -17,4 +17,12 @@ export class ExerciseService {
     createExercise(request: CreateExerciseRequest): Observable<{ id: string }> {
         return this.http.post<{ id: string }>(this.API_URL, request);
     }
+
+    updateExercise(id: string, request: CreateExerciseRequest): Observable<void> {
+        return this.http.put<void>(`${this.API_URL}/${id}`, request);
+    }
+
+    deleteExercise(id: string): Observable<void> {
+        return this.http.delete<void>(`${this.API_URL}/${id}`);
+    }
 }

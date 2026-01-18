@@ -1,17 +1,25 @@
-export interface WorkoutRequest {
-    date: string;
-    notes?: string;
-    exercises: WorkoutExercise[];
-}
-
-export interface WorkoutExercise {
-    exerciseId: string;
+export interface WorkoutTemplate {
+    id?: string;
+    userId: string;
     name: string;
-    sets: WorkoutSet[];
+    exerciseIds: string[];
+    createdAt?: Date;
 }
 
-export interface WorkoutSet {
-    weight: number;
+export interface WorkoutSession {
+    id?: string;
+    userId: string;
+    templateId?: string;
+    date: Date;
+    exercises: ExerciseLog[];
+}
+
+export interface ExerciseLog {
+    exerciseId: string;
+    sets: SetLog[];
+}
+
+export interface SetLog {
     reps: number;
-    rpe: number;
+    weight: number;
 }

@@ -4,6 +4,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatRippleModule } from '@angular/material/core';
 import { Router, RouterModule } from '@angular/router';
+import { TranslateModule } from '@ngx-translate/core';
 
 @Component({
     selector: 'app-dashboard',
@@ -13,7 +14,8 @@ import { Router, RouterModule } from '@angular/router';
         MatCardModule,
         MatIconModule,
         MatRippleModule,
-        RouterModule
+        RouterModule,
+        TranslateModule
     ],
     templateUrl: './dashboard.component.html',
     styleUrls: ['./dashboard.component.scss']
@@ -21,10 +23,10 @@ import { Router, RouterModule } from '@angular/router';
 export class DashboardComponent {
 
     menuItems = [
-        { label: 'Nowy Trening', icon: 'add_circle', route: '/create-workout', color: '#4caf50' },
-        { label: 'Baza Ćwiczeń', icon: 'fitness_center', route: '/exercises', color: '#2196f3' },
-        { label: 'Historia', icon: 'history', route: '/history', color: '#ff9800' }, // Placeholder
-        { label: 'Statystyki', icon: 'bar_chart', route: '/stats', color: '#9c27b0' } // Placeholder
+        { label: 'DASHBOARD.NEW_WORKOUT', icon: 'add_circle', color: '#4caf50', link: '/workouts' },
+        { label: 'DASHBOARD.EXERCISE_DB', icon: 'fitness_center', color: '#ff9800', link: '/exercises' },
+        { label: 'DASHBOARD.MEASUREMENTS', icon: 'straighten', color: '#2196f3', link: '/measurements' },
+        { label: 'DASHBOARD.HISTORY', icon: 'history', color: '#9c27b0', link: '/workouts/history' }
     ];
 
     constructor(private router: Router) { }

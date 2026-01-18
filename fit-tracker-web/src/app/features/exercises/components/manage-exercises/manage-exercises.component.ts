@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
@@ -35,9 +35,11 @@ export class ManageExercisesComponent implements OnInit {
     private exerciseService = inject(ExerciseService);
     private breakpointObserver = inject(BreakpointObserver);
     private fb = inject(NonNullableFormBuilder);
+    private cdr = inject(ChangeDetectorRef);
 
     exercises: Exercise[] = [];
-    displayedColumns: string[] = ['name', 'muscleGroup', 'description'];
+    displayedColumns: string[] = ['name', 'muscleGroup', 'description', 'actions'];
+    editingId: string | null = null;
 
     // RWD: Detect Handset (Mobile)
     isHandset$: Observable<boolean> = this.breakpointObserver.observe(Breakpoints.Handset)
@@ -63,6 +65,7 @@ export class ManageExercisesComponent implements OnInit {
         this.exerciseService.getExercises().subscribe({
             next: (data) => {
                 this.exercises = data;
+                this.cdr.detectChanges();
             },
             error: (err) => console.error(err)
         });
@@ -70,19 +73,65 @@ export class ManageExercisesComponent implements OnInit {
 
     toggleForm() {
         this.isFormVisible = !this.isFormVisible;
+        if (!this.isFormVisible) {
+            this.cancelEdit();
+        }
+    }
+
+    cancelEdit() {
+        this.editingId = null;
+        this.form.reset();
+        this.isFormVisible = false;
+    }
+
+    editExercise(exercise: Exercise) {
+        this.editingId = exercise.id;
+        this.form.patchValue({
+            name: exercise.name,
+            muscleGroup: exercise.muscleGroup,
+            description: exercise.description
+        });
+        this.isFormVisible = true;
+    }
+
+    deleteExercise(id: string) {
+        if (!confirm('Are you sure you want to delete this exercise?')) return;
+
+        this.exerciseService.deleteExercise(id).subscribe({
+            next: () => {
+                this.loadExercises();
+                this.cdr.detectChanges();
+            },
+            error: (err) => console.error(err)
+        });
     }
 
     submit() {
         if (this.form.invalid) return;
 
-        this.exerciseService.createExercise(this.form.getRawValue()).subscribe({
-            next: () => {
-                this.loadExercises();
-                this.form.reset();
-                this.isFormVisible = false;
-                alert('Exercise added!');
-            },
-            error: (err) => console.error(err)
-        });
+        const request = this.form.getRawValue();
+
+        if (this.editingId) {
+            this.exerciseService.updateExercise(this.editingId, request).subscribe({
+                next: () => {
+                    this.finishSubmit('Exercise updated!');
+                },
+                error: (err) => console.error(err)
+            });
+        } else {
+            this.exerciseService.createExercise(request).subscribe({
+                next: () => {
+                    this.finishSubmit('Exercise created!');
+                },
+                error: (err) => console.error(err)
+            });
+        }
+    }
+
+    private finishSubmit(message: string) {
+        this.loadExercises();
+        this.cancelEdit(); // Resets form and hides it
+        // Consider using SnackBar instead of alert in future
+        // alert(message); 
     }
 }

@@ -1,4 +1,3 @@
-using FitTracker.ApiService.Modules.Strength.Features.CreateWorkout;
 using FluentValidation;
 using MongoDB.Driver;
 using Carter;
@@ -18,7 +17,7 @@ builder.Services.AddValidatorsFromAssembly(typeof(Program).Assembly);
 builder.Services.AddCarter();
 
 // Database (MongoDB)
-builder.Services.AddSingleton<IMongoClient>(sp => 
+builder.Services.AddSingleton<IMongoClient>(sp =>
 {
     var connectionString = builder.Configuration.GetConnectionString("FitTracker") ?? "mongodb://localhost:27017";
     return new MongoClient(connectionString);
@@ -38,7 +37,6 @@ if (app.Environment.IsDevelopment())
 app.MapDefaultEndpoints();
 
 // Modules
-app.MapCreateWorkout();
 app.MapCarter();
 
 app.Run();

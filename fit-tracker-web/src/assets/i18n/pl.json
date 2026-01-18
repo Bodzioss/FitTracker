@@ -1,0 +1,49 @@
+{
+    "DASHBOARD": {
+        "NEW_WORKOUT": "Nowy Trening",
+        "EXERCISE_DB": "Baza Ćwiczeń",
+        "HISTORY": "Historia",
+        "STATS": "Statystyki",
+        "WELCOME": "Witaj w FitTracker!",
+        "READY": "Gotowy na trening?",
+        "MEASUREMENTS": "Pomiary Ciała"
+    },
+    "MEASUREMENTS": {
+        "TITLE": "Aktualny Pomiar",
+        "SUBTITLE": "Pomiary obwodu ciała wykonujemy przy rozluźnionych mięśniach.",
+        "WEIGHT": "Waga",
+        "HEIGHT": "Wzrost",
+        "CHEST": "Klatka piersiowa",
+        "WAIST": "Talia (brzuch)",
+        "HIPS": "Biodra",
+        "BICEP": "Ramię",
+        "THIGH": "Udo",
+        "CALF": "Łydka",
+        "SAVE": "Zapisz Pomiar",
+        "SUCCESS": "Pomiar zapisany!",
+        "HISTORY": "Ostatnie Pomiary",
+        "DATE": "Data",
+        "NOT_ENOUGH_DATA": "Zbyt mało danych do wykresu (wymagane min. 2 pomiary)"
+    },
+    "WORKOUTS": {
+        "TEMPLATES_TITLE": "Moje Plany Treningowe",
+        "CREATE_NEW": "Utwórz Nowy Plan",
+        "EXERCISES": "ćwiczeń",
+        "START": "ROZPOCZNIJ",
+        "CREATE_TITLE": "Kreator Planu",
+        "NAME_LABEL": "Nazwa Planu (np. FBW A)",
+        "ADD_EXERCISE": "Dodaj Ćwiczenie",
+        "SAVE_TEMPLATE": "Zapisz Plan",
+        "NO_EXERCISES_HINT": "Najpierw wybierz ćwiczenia z listy powyżej",
+        "SETS": "serii",
+        "WEIGHT": "Ciężar",
+        "REPS": "Powt.",
+        "ADD_SET": "Dodaj Serię",
+        "CANCEL": "Anuluj",
+        "FINISH": "Zakończ Trening",
+        "SESSION_SAVED": "Trening zapisany! Dobra robota! 💪",
+        "HISTORY_TITLE": "Historia Treningów",
+        "NO_HISTORY": "Brak zapisanych treningów. Do dzieła!",
+        "UNKNOWN_TEMPLATE": "Trening Dowolny"
+    }
+}

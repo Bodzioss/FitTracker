@@ -1,0 +1,143 @@
+<div class="container">
+    <div class="header">
+        <button mat-icon-button (click)="goBack()">
+            <mat-icon>arrow_back</mat-icon>
+        </button>
+        <div class="header-text">
+            <h1>{{ 'MEASUREMENTS.TITLE' | translate }}</h1>
+            <p>{{ 'MEASUREMENTS.SUBTITLE' | translate }}</p>
+        </div>
+    </div>
+
+    <!-- Layout: Left Form, Right Image -->
+    <div class="content-grid">
+        <mat-card class="form-card">
+            <form [formGroup]="form" (ngSubmit)="submit()">
+                <div class="form-grid">
+                    <!-- Waga / Wzrost -->
+                    <mat-form-field appearance="outline">
+                        <mat-label>{{ 'MEASUREMENTS.WEIGHT' | translate }}</mat-label>
+                        <input matInput type="number" formControlName="weight">
+                        <span matTextSuffix>kg</span>
+                        <button mat-icon-button matSuffix (click)="openChart('weight')" type="button">
+                            <mat-icon>show_chart</mat-icon>
+                        </button>
+                    </mat-form-field>
+
+                    <mat-form-field appearance="outline">
+                        <mat-label>{{ 'MEASUREMENTS.HEIGHT' | translate }}</mat-label>
+                        <input matInput type="number" formControlName="height">
+                        <span matTextSuffix>cm</span>
+                        <button mat-icon-button matSuffix (click)="openChart('height')" type="button">
+                            <mat-icon>show_chart</mat-icon>
+                        </button>
+                    </mat-form-field>
+
+                    <!-- Pomiary -->
+                    <mat-form-field appearance="outline">
+                        <mat-label>{{ 'MEASUREMENTS.CHEST' | translate }}</mat-label>
+                        <input matInput type="number" formControlName="chest">
+                        <span matTextSuffix>cm</span>
+                        <button mat-icon-button matSuffix (click)="openChart('chest')" type="button">
+                            <mat-icon>show_chart</mat-icon>
+                        </button>
+                    </mat-form-field>
+
+                    <mat-form-field appearance="outline">
+                        <mat-label>{{ 'MEASUREMENTS.WAIST' | translate }}</mat-label>
+                        <input matInput type="number" formControlName="waist">
+                        <span matTextSuffix>cm</span>
+                        <button mat-icon-button matSuffix (click)="openChart('waist')" type="button">
+                            <mat-icon>show_chart</mat-icon>
+                        </button>
+                    </mat-form-field>
+
+                    <mat-form-field appearance="outline">
+                        <mat-label>{{ 'MEASUREMENTS.HIPS' | translate }}</mat-label>
+                        <input matInput type="number" formControlName="hips">
+                        <span matTextSuffix>cm</span>
+                        <button mat-icon-button matSuffix (click)="openChart('hips')" type="button">
+                            <mat-icon>show_chart</mat-icon>
+                        </button>
+                    </mat-form-field>
+
+                    <mat-form-field appearance="outline">
+                        <mat-label>{{ 'MEASUREMENTS.BICEP' | translate }}</mat-label>
+                        <input matInput type="number" formControlName="bicep">
+                        <span matTextSuffix>cm</span>
+                        <button mat-icon-button matSuffix (click)="openChart('bicep')" type="button">
+                            <mat-icon>show_chart</mat-icon>
+                        </button>
+                    </mat-form-field>
+
+                    <mat-form-field appearance="outline">
+                        <mat-label>{{ 'MEASUREMENTS.THIGH' | translate }}</mat-label>
+                        <input matInput type="number" formControlName="thigh">
+                        <span matTextSuffix>cm</span>
+                        <button mat-icon-button matSuffix (click)="openChart('thigh')" type="button">
+                            <mat-icon>show_chart</mat-icon>
+                        </button>
+                    </mat-form-field>
+
+                    <mat-form-field appearance="outline">
+                        <mat-label>{{ 'MEASUREMENTS.CALF' | translate }}</mat-label>
+                        <input matInput type="number" formControlName="calf">
+                        <span matTextSuffix>cm</span>
+                        <button mat-icon-button matSuffix (click)="openChart('calf')" type="button">
+                            <mat-icon>show_chart</mat-icon>
+                        </button>
+                    </mat-form-field>
+                </div>
+
+                <div class="actions">
+                    <button mat-raised-button color="primary" type="submit" [disabled]="form.invalid">
+                        {{ 'MEASUREMENTS.SAVE' | translate }}
+                    </button>
+                </div>
+            </form>
+        </mat-card>
+
+        <!-- Image Visualization -->
+        <mat-card class="image-card">
+            <img src="assets/body-outline.png" alt="Body Specification" class="body-image"
+                onerror="this.src='https://placehold.co/300x500?text=Body+Silhouette'">
+        </mat-card>
+    </div>
+
+    <!-- History Table -->
+    <div class="history-section" *ngIf="history.length > 0">
+        <h2>{{ 'MEASUREMENTS.HISTORY' | translate }}</h2>
+        <mat-card>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>{{ 'MEASUREMENTS.DATE' | translate }}</th>
+                            <th>{{ 'MEASUREMENTS.WEIGHT' | translate }}</th>
+                            <th>{{ 'MEASUREMENTS.HEIGHT' | translate }}</th>
+                            <th>{{ 'MEASUREMENTS.CHEST' | translate }}</th>
+                            <th>{{ 'MEASUREMENTS.WAIST' | translate }}</th>
+                            <th>{{ 'MEASUREMENTS.HIPS' | translate }}</th>
+                            <th>{{ 'MEASUREMENTS.BICEP' | translate }}</th>
+                            <th>{{ 'MEASUREMENTS.THIGH' | translate }}</th>
+                            <th>{{ 'MEASUREMENTS.CALF' | translate }}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let entry of history; trackBy: trackByFn">
+                            <td>{{ entry.date | date:'shortDate' }}</td>
+                            <td>{{ entry.weight }} kg</td>
+                            <td>{{ entry.height }} cm</td>
+                            <td>{{ entry.chest }} cm</td>
+                            <td>{{ entry.waist }} cm</td>
+                            <td>{{ entry.hips }} cm</td>
+                            <td>{{ entry.bicep }} cm</td>
+                            <td>{{ entry.thigh }} cm</td>
+                            <td>{{ entry.calf }} cm</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </mat-card>
+    </div>
+</div>
