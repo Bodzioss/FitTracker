@@ -150,7 +150,7 @@ export class WorkoutHistoryComponent implements OnInit {
     }
 
     // TODO: Fetch templates to map names properly. For now simple logic.
-    getTemplateName(id: string): string {
+    getTemplateName(id: string | undefined): string {
         return id ? 'Workout Session' : 'Free Workout';
     }
 
