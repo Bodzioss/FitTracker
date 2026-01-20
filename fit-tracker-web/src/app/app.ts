@@ -1,3 +1,6 @@
+import { Component, signal, inject } from '@angular/core';
+import { RouterOutlet } from '@angular/router';
+import { TranslateService } from '@ngx-translate/core';
 import { NavbarComponent } from './shared/components/navbar/navbar.component';
 
 @Component({

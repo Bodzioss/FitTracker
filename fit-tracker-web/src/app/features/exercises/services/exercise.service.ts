@@ -2,13 +2,14 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { CreateExerciseRequest, Exercise } from '../../../core/models/exercise.model';
+import { environment } from '../../../../environments/environment';
 
 @Injectable({
     providedIn: 'root'
 })
 export class ExerciseService {
     private http = inject(HttpClient);
-    private readonly API_URL = '/api/exercises';
+    private readonly API_URL = `${environment.apiUrl}/exercises`;
 
     getExercises(): Observable<Exercise[]> {
         return this.http.get<Exercise[]>(this.API_URL);

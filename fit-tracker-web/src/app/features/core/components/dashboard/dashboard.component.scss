@@ -73,3 +73,20 @@
         }
     }
 }
+
+// Dark theme overrides
+:host-context(body.dark-theme) {
+    .dashboard-header {
+        h1 {
+            color: #ffffff;
+        }
+
+        p {
+            color: #b0b0b0;
+        }
+    }
+
+    .menu-card .card-content .label {
+        color: #f5f5f5;
+    }
+}

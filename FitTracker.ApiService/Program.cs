@@ -11,6 +11,21 @@ builder.AddServiceDefaults();
 builder.Services.AddProblemDetails();
 builder.Services.AddOpenApi();
 
+// CORS for Frontend
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(policy =>
+    {
+        policy.WithOrigins(
+            "http://localhost:4200",                    // Dev
+            "https://localhost:4200",                   // Dev HTTPS
+            builder.Configuration["AllowedOrigins"] ?? "*" // Production (set via env var)
+        )
+        .AllowAnyHeader()
+        .AllowAnyMethod();
+    });
+});
+
 // Domain Services
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
 builder.Services.AddValidatorsFromAssembly(typeof(Program).Assembly);
@@ -28,6 +43,7 @@ var app = builder.Build();
 
 // Configure the HTTP request pipeline.
 app.UseExceptionHandler();
+app.UseCors(); // Enable CORS
 
 if (app.Environment.IsDevelopment())
 {
@@ -40,4 +56,3 @@ app.MapDefaultEndpoints();
 app.MapCarter();
 
 app.Run();
-
