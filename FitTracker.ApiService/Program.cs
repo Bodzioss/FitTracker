@@ -16,13 +16,9 @@ builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>
     {
-        policy.WithOrigins(
-            "http://localhost:4200",                    // Dev
-            "https://localhost:4200",                   // Dev HTTPS
-            builder.Configuration["AllowedOrigins"] ?? "*" // Production (set via env var)
-        )
-        .AllowAnyHeader()
-        .AllowAnyMethod();
+        policy.AllowAnyOrigin()  // For demo - allow all origins
+              .AllowAnyHeader()
+              .AllowAnyMethod();
     });
 });
 
