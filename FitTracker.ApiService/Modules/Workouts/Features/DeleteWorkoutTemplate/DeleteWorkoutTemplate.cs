@@ -1,7 +1,6 @@
 using Carter;
 using MediatR;
-using FitTracker.ApiService.Modules.Workouts.Models;
-using MongoDB.Driver;
+using FitTracker.ApiService.Infrastructure;
 
 namespace FitTracker.ApiService.Modules.Workouts.Features.DeleteWorkoutTemplate;
 
@@ -13,7 +12,7 @@ public static class DeleteWorkoutTemplate
         {
             app.MapDelete("/api/workouts/templates/{id}", async (string id, ISender sender) =>
             {
-                var command = new DeleteWorkoutTemplateCommand(id, "user-1"); // MVP User
+                var command = new DeleteWorkoutTemplateCommand(id, "user-1");
                 await sender.Send(command);
                 return Results.NoContent();
             })
@@ -23,15 +22,16 @@ public static class DeleteWorkoutTemplate
 
     public record DeleteWorkoutTemplateCommand(string Id, string UserId) : IRequest;
 
-    public class DeleteWorkoutTemplateHandler(IMongoDatabase database) : IRequestHandler<DeleteWorkoutTemplateCommand>
+    public class DeleteWorkoutTemplateHandler(InMemoryDataStore store) : IRequestHandler<DeleteWorkoutTemplateCommand>
     {
-        private readonly IMongoCollection<WorkoutTemplate> _collection = database.GetCollection<WorkoutTemplate>("workout_templates");
-
-        public async Task Handle(DeleteWorkoutTemplateCommand request, CancellationToken cancellationToken)
+        public Task Handle(DeleteWorkoutTemplateCommand request, CancellationToken cancellationToken)
         {
-            var filter = Builders<WorkoutTemplate>.Filter.Eq(x => x.Id, request.Id);
-            // In a real app we might verify UserId here too
-            await _collection.DeleteOneAsync(filter, cancellationToken: cancellationToken);
+            var template = store.WorkoutTemplates.FirstOrDefault(x => x.Id == request.Id);
+            if (template != null)
+            {
+                store.WorkoutTemplates.Remove(template);
+            }
+            return Task.CompletedTask;
         }
     }
 }

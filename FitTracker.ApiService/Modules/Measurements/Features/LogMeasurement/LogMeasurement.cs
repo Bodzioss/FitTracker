@@ -1,7 +1,7 @@
 using Carter;
 using FluentValidation;
 using MediatR;
-using MongoDB.Driver;
+using FitTracker.ApiService.Infrastructure;
 
 namespace FitTracker.ApiService.Modules.Measurements.Features.LogMeasurement;
 
@@ -13,7 +13,7 @@ public static class LogMeasurement
         {
             app.MapPost("/api/measurements", async (LogMeasurementRequest request, ISender sender) =>
             {
-                var command = new LogMeasurementCommand("user-1", request); // Hardcoded User for MVP
+                var command = new LogMeasurementCommand("user-1", request);
                 var id = await sender.Send(command);
                 return Results.Created($"/api/measurements/{id}", new { Id = id });
             })
@@ -21,7 +21,6 @@ public static class LogMeasurement
         }
     }
 
-    // DTO
     public record LogMeasurementRequest(
         double Weight,
         double Height,
@@ -33,10 +32,8 @@ public static class LogMeasurement
         double Calf,
         DateTime? Date);
 
-    // Command
     public record LogMeasurementCommand(string UserId, LogMeasurementRequest Data) : IRequest<string>;
 
-    // Validator
     public class LogMeasurementValidator : AbstractValidator<LogMeasurementCommand>
     {
         public LogMeasurementValidator()
@@ -46,29 +43,27 @@ public static class LogMeasurement
         }
     }
 
-    // Handler
-    public class LogMeasurementHandler(IMongoDatabase database) : IRequestHandler<LogMeasurementCommand, string>
+    public class LogMeasurementHandler(InMemoryDataStore store) : IRequestHandler<LogMeasurementCommand, string>
     {
-        private readonly IMongoCollection<Measurement> _collection = database.GetCollection<Measurement>("measurements");
-
-        public async Task<string> Handle(LogMeasurementCommand request, CancellationToken cancellationToken)
+        public Task<string> Handle(LogMeasurementCommand request, CancellationToken cancellationToken)
         {
             var entity = new Measurement
             {
+                Id = Guid.NewGuid().ToString(),
                 UserId = request.UserId,
                 Date = request.Data.Date ?? DateTime.UtcNow,
-                Weight = request.Data.Weight,
-                Height = request.Data.Height,
-                Chest = request.Data.Chest,
-                Waist = request.Data.Waist,
-                Hips = request.Data.Hips,
-                Bicep = request.Data.Bicep,
-                Thigh = request.Data.Thigh,
-                Calf = request.Data.Calf
+                Weight = (decimal)request.Data.Weight,
+                Height = (decimal)request.Data.Height,
+                Chest = (decimal)request.Data.Chest,
+                Waist = (decimal)request.Data.Waist,
+                Hips = (decimal)request.Data.Hips,
+                Bicep = (decimal)request.Data.Bicep,
+                Thigh = (decimal)request.Data.Thigh,
+                Calf = (decimal)request.Data.Calf
             };
 
-            await _collection.InsertOneAsync(entity, cancellationToken: cancellationToken);
-            return entity.Id;
+            store.Measurements.Add(entity);
+            return Task.FromResult(entity.Id);
         }
     }
 }

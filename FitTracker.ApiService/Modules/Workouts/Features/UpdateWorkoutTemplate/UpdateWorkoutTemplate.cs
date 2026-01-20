@@ -1,8 +1,7 @@
 using Carter;
 using FluentValidation;
 using MediatR;
-using FitTracker.ApiService.Modules.Workouts.Models;
-using MongoDB.Driver;
+using FitTracker.ApiService.Infrastructure;
 
 namespace FitTracker.ApiService.Modules.Workouts.Features.UpdateWorkoutTemplate;
 
@@ -14,7 +13,7 @@ public static class UpdateWorkoutTemplate
         {
             app.MapPut("/api/workouts/templates/{id}", async (string id, UpdateWorkoutTemplateRequest request, ISender sender) =>
             {
-                var command = new UpdateWorkoutTemplateCommand(id, "user-1", request); // MVP User
+                var command = new UpdateWorkoutTemplateCommand(id, "user-1", request);
                 await sender.Send(command);
                 return Results.NoContent();
             })
@@ -36,18 +35,17 @@ public static class UpdateWorkoutTemplate
         }
     }
 
-    public class UpdateWorkoutTemplateHandler(IMongoDatabase database) : IRequestHandler<UpdateWorkoutTemplateCommand>
+    public class UpdateWorkoutTemplateHandler(InMemoryDataStore store) : IRequestHandler<UpdateWorkoutTemplateCommand>
     {
-        private readonly IMongoCollection<WorkoutTemplate> _collection = database.GetCollection<WorkoutTemplate>("workout_templates");
-
-        public async Task Handle(UpdateWorkoutTemplateCommand request, CancellationToken cancellationToken)
+        public Task Handle(UpdateWorkoutTemplateCommand request, CancellationToken cancellationToken)
         {
-            var filter = Builders<WorkoutTemplate>.Filter.Eq(x => x.Id, request.Id);
-            var update = Builders<WorkoutTemplate>.Update
-                .Set(x => x.Name, request.Data.Name)
-                .Set(x => x.ExerciseIds, request.Data.ExerciseIds); // Updating exercises too
-
-            await _collection.UpdateOneAsync(filter, update, cancellationToken: cancellationToken);
+            var template = store.WorkoutTemplates.FirstOrDefault(x => x.Id == request.Id);
+            if (template != null)
+            {
+                template.Name = request.Data.Name;
+                template.ExerciseIds = request.Data.ExerciseIds;
+            }
+            return Task.CompletedTask;
         }
     }
 }

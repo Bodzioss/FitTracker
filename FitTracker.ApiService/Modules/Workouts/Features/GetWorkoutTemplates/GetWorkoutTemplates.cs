@@ -1,7 +1,6 @@
 using Carter;
 using MediatR;
-using FitTracker.ApiService.Modules.Workouts.Models;
-using MongoDB.Driver;
+using FitTracker.ApiService.Infrastructure;
 
 namespace FitTracker.ApiService.Modules.Workouts.Features.GetWorkoutTemplates;
 
@@ -13,7 +12,7 @@ public static class GetWorkoutTemplates
         {
             app.MapGet("/api/workouts/templates", async (ISender sender) =>
             {
-                var query = new GetWorkoutTemplatesQuery("user-1"); // MVP User
+                var query = new GetWorkoutTemplatesQuery("user-1");
                 var result = await sender.Send(query);
                 return Results.Ok(result);
             })
@@ -23,13 +22,12 @@ public static class GetWorkoutTemplates
 
     public record GetWorkoutTemplatesQuery(string UserId) : IRequest<List<WorkoutTemplate>>;
 
-    public class GetWorkoutTemplatesHandler(IMongoDatabase database) : IRequestHandler<GetWorkoutTemplatesQuery, List<WorkoutTemplate>>
+    public class GetWorkoutTemplatesHandler(InMemoryDataStore store) : IRequestHandler<GetWorkoutTemplatesQuery, List<WorkoutTemplate>>
     {
-        private readonly IMongoCollection<WorkoutTemplate> _collection = database.GetCollection<WorkoutTemplate>("workout_templates");
-
-        public async Task<List<WorkoutTemplate>> Handle(GetWorkoutTemplatesQuery request, CancellationToken cancellationToken)
+        public Task<List<WorkoutTemplate>> Handle(GetWorkoutTemplatesQuery request, CancellationToken cancellationToken)
         {
-            return await _collection.Find(x => x.UserId == request.UserId).ToListAsync(cancellationToken);
+            var templates = store.WorkoutTemplates.Where(x => x.UserId == request.UserId).ToList();
+            return Task.FromResult(templates);
         }
     }
 }

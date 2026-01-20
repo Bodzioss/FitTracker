@@ -1,8 +1,7 @@
 using Carter;
 using FluentValidation;
 using MediatR;
-using FitTracker.ApiService.Modules.Workouts.Models;
-using MongoDB.Driver;
+using FitTracker.ApiService.Infrastructure;
 
 namespace FitTracker.ApiService.Modules.Workouts.Features.LogWorkoutSession;
 
@@ -14,7 +13,7 @@ public static class LogWorkoutSession
         {
             app.MapPost("/api/workouts/sessions", async (LogWorkoutSessionRequest request, ISender sender) =>
             {
-                var command = new LogWorkoutSessionCommand("user-1", request); // MVP User
+                var command = new LogWorkoutSessionCommand("user-1", request);
                 var id = await sender.Send(command);
                 return Results.Created($"/api/workouts/sessions/{id}", new { Id = id });
             })
@@ -40,37 +39,31 @@ public static class LogWorkoutSession
                 exercise.RuleForEach(s => s.Sets).ChildRules(set =>
                 {
                     set.RuleFor(s => s.Reps).GreaterThan(0);
-                    set.RuleFor(s => s.Weight).GreaterThan(0);
+                    set.RuleFor(s => s.Weight).GreaterThanOrEqualTo(0);
                 });
             });
         }
     }
 
-    public class LogWorkoutSessionHandler(IMongoDatabase database) : IRequestHandler<LogWorkoutSessionCommand, string>
+    public class LogWorkoutSessionHandler(InMemoryDataStore store) : IRequestHandler<LogWorkoutSessionCommand, string>
     {
-        private readonly IMongoCollection<WorkoutSession> _collection = database.GetCollection<WorkoutSession>("workout_sessions");
-
-        public async Task<string> Handle(LogWorkoutSessionCommand request, CancellationToken cancellationToken)
+        public Task<string> Handle(LogWorkoutSessionCommand request, CancellationToken cancellationToken)
         {
             var entity = new WorkoutSession
             {
+                Id = Guid.NewGuid().ToString(),
                 UserId = request.UserId,
                 TemplateId = request.Data.TemplateId ?? string.Empty,
                 Date = request.Data.Date ?? DateTime.UtcNow,
                 Exercises = request.Data.Exercises.Select(e => new ExerciseLog
                 {
                     ExerciseId = e.ExerciseId,
-                    Sets = e.Sets.Select(s => new SetLog
-                    {
-                        Reps = s.Reps,
-                        Weight = s.Weight
-                    }).ToList()
+                    Sets = e.Sets.Select(s => new SetLog((decimal)s.Weight, s.Reps)).ToList()
                 }).ToList()
             };
 
-            await _collection.InsertOneAsync(entity, cancellationToken: cancellationToken);
-
-            return entity.Id;
+            store.WorkoutSessions.Add(entity);
+            return Task.FromResult(entity.Id);
         }
     }
 }

@@ -1,6 +1,6 @@
 using Carter;
 using MediatR;
-using MongoDB.Driver;
+using FitTracker.ApiService.Infrastructure;
 
 namespace FitTracker.ApiService.Modules.Measurements.Features.GetMeasurements;
 
@@ -12,7 +12,7 @@ public static class GetMeasurements
         {
             app.MapGet("/api/measurements", async (ISender sender) =>
             {
-                var result = await sender.Send(new GetMeasurementsQuery("user-1")); // MVP User
+                var result = await sender.Send(new GetMeasurementsQuery("user-1"));
                 return Results.Ok(result);
             })
             .WithTags("Measurements");
@@ -21,15 +21,15 @@ public static class GetMeasurements
 
     public record GetMeasurementsQuery(string UserId) : IRequest<List<Measurement>>;
 
-    public class GetMeasurementsHandler(IMongoDatabase database) : IRequestHandler<GetMeasurementsQuery, List<Measurement>>
+    public class GetMeasurementsHandler(InMemoryDataStore store) : IRequestHandler<GetMeasurementsQuery, List<Measurement>>
     {
-        private readonly IMongoCollection<Measurement> _collection = database.GetCollection<Measurement>("measurements");
-
-        public async Task<List<Measurement>> Handle(GetMeasurementsQuery request, CancellationToken cancellationToken)
+        public Task<List<Measurement>> Handle(GetMeasurementsQuery request, CancellationToken cancellationToken)
         {
-            return await _collection.Find(x => x.UserId == request.UserId)
-                .SortByDescending(x => x.Date)
-                .ToListAsync(cancellationToken);
+            var measurements = store.Measurements
+                .Where(x => x.UserId == request.UserId)
+                .OrderByDescending(x => x.Date)
+                .ToList();
+            return Task.FromResult(measurements);
         }
     }
 }

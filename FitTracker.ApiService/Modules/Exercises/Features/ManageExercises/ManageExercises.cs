@@ -1,7 +1,7 @@
 using Carter;
 using FluentValidation;
 using MediatR;
-using MongoDB.Driver;
+using FitTracker.ApiService.Infrastructure;
 
 namespace FitTracker.ApiService.Modules.Exercises.Features.ManageExercises;
 
@@ -22,11 +22,22 @@ public static class ManageExercises
                 var result = await sender.Send(new GetExercisesQuery());
                 return Results.Ok(result);
             });
+
+            app.MapPut("/api/exercises/{id}", async (string id, UpdateExerciseCommand command, ISender sender) =>
+            {
+                await sender.Send(command with { Id = id });
+                return Results.NoContent();
+            });
+
+            app.MapDelete("/api/exercises/{id}", async (string id, ISender sender) =>
+            {
+                await sender.Send(new DeleteExerciseCommand(id));
+                return Results.NoContent();
+            });
         }
     }
 
     // --- Create Exercise ---
-
     public record CreateExerciseCommand(string Name, string MuscleGroup, string? Description) : IRequest<string>;
 
     public class CreateExerciseValidator : AbstractValidator<CreateExerciseCommand>
@@ -38,36 +49,66 @@ public static class ManageExercises
         }
     }
 
-    public class CreateExerciseHandler(IMongoDatabase database) : IRequestHandler<CreateExerciseCommand, string>
+    public class CreateExerciseHandler(InMemoryDataStore store) : IRequestHandler<CreateExerciseCommand, string>
     {
-        private readonly IMongoCollection<Exercise> _collection = database.GetCollection<Exercise>("exercises");
-
-        public async Task<string> Handle(CreateExerciseCommand request, CancellationToken cancellationToken)
+        public Task<string> Handle(CreateExerciseCommand request, CancellationToken cancellationToken)
         {
             var entity = new Exercise
             {
+                Id = Guid.NewGuid().ToString(),
+                UserId = "user-1",
                 Name = request.Name,
                 MuscleGroup = request.MuscleGroup,
                 Description = request.Description
             };
 
-            await _collection.InsertOneAsync(entity, cancellationToken: cancellationToken);
-
-            return entity.Id;
+            store.Exercises.Add(entity);
+            return Task.FromResult(entity.Id);
         }
     }
 
     // --- Get Exercises ---
-
     public record GetExercisesQuery : IRequest<List<Exercise>>;
 
-    public class GetExercisesHandler(IMongoDatabase database) : IRequestHandler<GetExercisesQuery, List<Exercise>>
+    public class GetExercisesHandler(InMemoryDataStore store) : IRequestHandler<GetExercisesQuery, List<Exercise>>
     {
-        private readonly IMongoCollection<Exercise> _collection = database.GetCollection<Exercise>("exercises");
-
-        public async Task<List<Exercise>> Handle(GetExercisesQuery request, CancellationToken cancellationToken)
+        public Task<List<Exercise>> Handle(GetExercisesQuery request, CancellationToken cancellationToken)
         {
-            return await _collection.Find(_ => true).ToListAsync(cancellationToken);
+            return Task.FromResult(store.Exercises.ToList());
+        }
+    }
+
+    // --- Update Exercise ---
+    public record UpdateExerciseCommand(string Id, string Name, string MuscleGroup, string? Description) : IRequest;
+
+    public class UpdateExerciseHandler(InMemoryDataStore store) : IRequestHandler<UpdateExerciseCommand>
+    {
+        public Task Handle(UpdateExerciseCommand request, CancellationToken cancellationToken)
+        {
+            var exercise = store.Exercises.FirstOrDefault(e => e.Id == request.Id);
+            if (exercise != null)
+            {
+                exercise.Name = request.Name;
+                exercise.MuscleGroup = request.MuscleGroup;
+                exercise.Description = request.Description;
+            }
+            return Task.CompletedTask;
+        }
+    }
+
+    // --- Delete Exercise ---
+    public record DeleteExerciseCommand(string Id) : IRequest;
+
+    public class DeleteExerciseHandler(InMemoryDataStore store) : IRequestHandler<DeleteExerciseCommand>
+    {
+        public Task Handle(DeleteExerciseCommand request, CancellationToken cancellationToken)
+        {
+            var exercise = store.Exercises.FirstOrDefault(e => e.Id == request.Id);
+            if (exercise != null)
+            {
+                store.Exercises.Remove(exercise);
+            }
+            return Task.CompletedTask;
         }
     }
 }

@@ -1,6 +1,6 @@
 using FluentValidation;
-using MongoDB.Driver;
 using Carter;
+using FitTracker.ApiService.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -27,13 +27,19 @@ builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Progr
 builder.Services.AddValidatorsFromAssembly(typeof(Program).Assembly);
 builder.Services.AddCarter();
 
-// Database (MongoDB)
-builder.Services.AddSingleton<IMongoClient>(sp =>
-{
-    var connectionString = builder.Configuration.GetConnectionString("FitTracker") ?? "mongodb://localhost:27017";
-    return new MongoClient(connectionString);
-});
-builder.Services.AddScoped<IMongoDatabase>(sp => sp.GetRequiredService<IMongoClient>().GetDatabase("FitTracker"));
+// Database - InMemory for demo (Singleton to persist data during app lifetime)
+builder.Services.AddSingleton<InMemoryDataStore>();
+
+// ----------------------
+// To switch to MongoDB locally, comment out InMemoryDataStore above and uncomment below:
+// ----------------------
+// using MongoDB.Driver;
+// builder.Services.AddSingleton<IMongoClient>(sp =>
+// {
+//     var connectionString = builder.Configuration.GetConnectionString("FitTracker") ?? "mongodb://localhost:27017";
+//     return new MongoClient(connectionString);
+// });
+// builder.Services.AddScoped<IMongoDatabase>(sp => sp.GetRequiredService<IMongoClient>().GetDatabase("FitTracker"));
 
 var app = builder.Build();
 
