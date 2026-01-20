@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { NonNullableFormBuilder, ReactiveFormsModule, FormArray, Validators } from '@angular/forms';
@@ -14,7 +14,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatExpansionModule } from '@angular/material/expansion';
 
 import { WorkoutService } from '../../services/workout.service';
-import { WorkoutTemplate } from '../../../../core/models/workout.model';
+import { WorkoutTemplate, WorkoutSession, SetLog } from '../../../../core/models/workout.model';
 import { ExerciseService } from '../../../exercises/services/exercise.service';
 import { Exercise } from '../../../../core/models/exercise.model';
 
@@ -58,32 +58,46 @@ import { Exercise } from '../../../../core/models/exercise.model';
                 </mat-panel-description>
               </mat-expansion-panel-header>
 
-              <!-- Sets List -->
-              <div formArrayName="sets">
-                <div *ngFor="let setControl of getSetsControls(i); let j = index" [formGroupName]="j" class="set-row">
-                  <div class="set-number">{{ j + 1 }}</div>
+              <div class="exercise-content">
+                <!-- Sets List (Left) -->
+                <div class="current-workout" formArrayName="sets">
+                  <h3>{{ 'WORKOUTS.CURRENT' | translate }}</h3>
+                  <div *ngFor="let setControl of getSetsControls(i); let j = index" [formGroupName]="j" class="set-row">
+                    <div class="set-number">{{ j + 1 }}</div>
+                    
+                    <mat-form-field appearance="outline" class="small-input">
+                      <mat-label>{{ 'WORKOUTS.WEIGHT' | translate }}</mat-label>
+                      <input matInput type="number" formControlName="weight">
+                      <span matTextSuffix>kg</span>
+                    </mat-form-field>
+
+                    <mat-form-field appearance="outline" class="small-input">
+                      <mat-label>{{ 'WORKOUTS.REPS' | translate }}</mat-label>
+                      <input matInput type="number" formControlName="reps">
+                    </mat-form-field>
+
+                    <button mat-icon-button color="warn" type="button" (click)="removeSet(i, j)" [disabled]="getSetsControls(i).length <= 1">
+                      <mat-icon>delete</mat-icon>
+                    </button>
+                  </div>
                   
-                  <mat-form-field appearance="outline" class="small-input">
-                    <mat-label>{{ 'WORKOUTS.WEIGHT' | translate }}</mat-label>
-                    <input matInput type="number" formControlName="weight">
-                    <span matTextSuffix>kg</span>
-                  </mat-form-field>
-
-                  <mat-form-field appearance="outline" class="small-input">
-                    <mat-label>{{ 'WORKOUTS.REPS' | translate }}</mat-label>
-                    <input matInput type="number" formControlName="reps">
-                  </mat-form-field>
-
-                  <button mat-icon-button color="warn" type="button" (click)="removeSet(i, j)" [disabled]="getSetsControls(i).length <= 1">
-                    <mat-icon>delete</mat-icon>
-                  </button>
+                  <div class="panel-actions">
+                    <button mat-stroked-button color="primary" type="button" (click)="addSet(i)">
+                      <mat-icon>add</mat-icon> {{ 'WORKOUTS.ADD_SET' | translate }}
+                    </button>
+                  </div>
                 </div>
-              </div>
 
-              <div class="panel-actions">
-                <button mat-stroked-button color="primary" type="button" (click)="addSet(i)">
-                  <mat-icon>add</mat-icon> {{ 'WORKOUTS.ADD_SET' | translate }}
-                </button>
+                <!-- History (Right) -->
+                <div class="last-workout" *ngIf="getLastSessionSets(exControl.value.exerciseId) as lastSets">
+                    <h3>{{ 'WORKOUTS.LAST_TIME' | translate }}</h3>
+                    <div class="history-list">
+                        <div *ngFor="let set of lastSets; let k = index" class="history-row">
+                            <span class="set-idx">{{ k + 1 }}.</span>
+                            <span class="history-val">{{ set.weight }}kg x {{ set.reps }}</span>
+                        </div>
+                    </div>
+                </div>
               </div>
 
             </mat-expansion-panel>
@@ -102,6 +116,19 @@ import { Exercise } from '../../../../core/models/exercise.model';
   styles: [`
     .container { padding: 1rem; max-width: 800px; margin: 0 auto; padding-bottom: 80px; }
     .header { display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem; h1 { margin: 0; color: #1976d2; } }
+    .header { display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem; h1 { margin: 0; color: #1976d2; } }
+    .exercise-content { 
+        display: flex; flex-direction: column; gap: 2rem; 
+        @media (min-width: 800px) { flex-direction: row; }
+    }
+    .current-workout { flex: 2; }
+    .last-workout { 
+        flex: 1; border-left: 1px solid #eee; padding-left: 1rem; 
+        h3 { color: #888; margin-top: 0; }
+        @media (max-width: 799px) { border-left: none; padding-left: 0; border-top: 1px solid #eee; padding-top: 1rem; }
+    }
+    .history-row { display: flex; gap: 1rem; padding: 0.5rem 0; color: #666; border-bottom: 1px dashed #f0f0f0; }
+    .set-idx { font-weight: bold; width: 20px; }
     .set-row { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; }
     .set-number { font-weight: bold; width: 24px; text-align: center; color: #666; }
     .small-input { width: 100px; }
@@ -123,10 +150,14 @@ export class ActiveWorkoutComponent implements OnInit {
   private workoutService = inject(WorkoutService);
   private exerciseService = inject(ExerciseService);
   private snackBar = inject(MatSnackBar);
+  private cdr = inject(ChangeDetectorRef);
   public translate = inject(TranslateService);
 
   templateId: string | null = null;
   template: WorkoutTemplate | null = null;
+
+  // lastSession: WorkoutSession | null = null; // Removed
+  lastExerciseData: Map<string, SetLog[]> = new Map();
   allExercises: Exercise[] = [];
   loading = true;
 
@@ -144,31 +175,93 @@ export class ActiveWorkoutComponent implements OnInit {
 
   ngOnInit() {
     this.templateId = this.route.snapshot.paramMap.get('templateId');
+    console.log('ActiveWorkout: Init. TemplateId:', this.templateId);
 
     // Load exercises library first (needed for names)
-    this.exerciseService.getExercises().subscribe(exercises => {
-      this.allExercises = exercises;
+    console.log('ActiveWorkout: Fetching exercises...');
+    this.exerciseService.getExercises().subscribe({
+      next: (exercises) => {
+        console.log('ActiveWorkout: Exercises received', exercises.length);
+        this.allExercises = exercises;
 
-      if (this.templateId) {
-        this.loadTemplate(this.templateId);
+        if (this.templateId) {
+          console.log('ActiveWorkout: Loading template...');
+          this.loadTemplate(this.templateId);
+        } else {
+          console.warn('ActiveWorkout: No templateId found');
+          this.loading = false;
+          this.cdr.detectChanges();
+        }
+      },
+      error: (err) => {
+        console.error('ActiveWorkout: Error loading exercises', err);
+        this.snackBar.open('Failed to load exercises data', 'Close', { duration: 3000 });
+        this.loading = false;
+        this.cdr.detectChanges();
       }
     });
   }
 
   loadTemplate(id: string) {
-    // Ideally we have getTemplateById, but for now we filter all templates
-    // If backend doesn't support getById yet, we might need to add it or fetch all.
-    // Assuming we fetch all effectively for now as MVP.
-    this.workoutService.getTemplates().subscribe(templates => {
-      this.template = templates.find(t => t.id === id) || null;
-      if (this.template) {
-        this.initForm(this.template);
-      } else {
-        this.snackBar.open('Template not found', 'Error', { duration: 3000 });
+    this.workoutService.getTemplates().subscribe({
+      next: (templates) => {
+        console.log('ActiveWorkout: Templates received', templates.length);
+        this.template = templates.find(t => t.id === id) || null;
+        console.log('ActiveWorkout: Template found?', this.template);
+
+        if (this.template) {
+          this.initForm(this.template);
+          this.loadHistory();
+        } else {
+          this.snackBar.open('Template not found', 'Error', { duration: 3000 });
+          this.goBack();
+        }
+        this.loading = false;
+        console.log('ActiveWorkout: Loading set to false');
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error('ActiveWorkout: Error loading templates', err);
+        this.snackBar.open('Failed to load workout template', 'Close', { duration: 3000 });
+        this.loading = false;
+        this.cdr.detectChanges();
         this.goBack();
       }
-      this.loading = false;
     });
+  }
+
+  loadHistory() {
+    // Fetch all sessions to find last execution of each exercise
+    this.workoutService.getSessions().subscribe({
+      next: (sessions) => {
+        // Sort by date descending (newest first)
+        const sortedSessions = sessions.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+        const historyMap = new Map<string, SetLog[]>();
+
+        // We need history for exercises in the current template
+        const neededExercises = this.template?.exerciseIds || [];
+
+        // Iterate through sessions and find the first occurrence of each needed exercise
+        for (const session of sortedSessions) {
+          for (const log of session.exercises) {
+            if (neededExercises.includes(log.exerciseId) && !historyMap.has(log.exerciseId)) {
+              historyMap.set(log.exerciseId, log.sets);
+            }
+          }
+          // Optimization: Stop if we found everything
+          if (historyMap.size === neededExercises.length) break;
+        }
+
+        this.lastExerciseData = historyMap;
+        console.log('ActiveWorkout: History loaded', this.lastExerciseData);
+      },
+      error: (err) => console.error('Error loading history', err)
+    });
+  }
+
+  getLastSessionSets(exerciseId: string): SetLog[] | null {
+    return this.lastExerciseData.get(exerciseId) || null;
   }
 
   initForm(template: WorkoutTemplate) {

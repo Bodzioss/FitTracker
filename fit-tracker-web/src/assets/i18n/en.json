@@ -44,6 +44,9 @@
         "SESSION_SAVED": "Workout saved! Good job! 💪",
         "HISTORY_TITLE": "Workout History",
         "NO_HISTORY": "No workouts logged yet. Start training!",
-        "UNKNOWN_TEMPLATE": "Freestyle Workout"
+        "UNKNOWN_TEMPLATE": "Freestyle Workout",
+        "EDIT_TITLE": "Edit Plan",
+        "CURRENT": "Current Workout",
+        "LAST_TIME": "Last Workout"
     }
 }

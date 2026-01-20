@@ -19,6 +19,14 @@ export class WorkoutService {
         return this.http.get<WorkoutTemplate[]>(`${this.API_URL}/templates`);
     }
 
+    updateTemplate(id: string, template: Omit<WorkoutTemplate, 'id' | 'userId' | 'createdAt'>): Observable<void> {
+        return this.http.put<void>(`${this.API_URL}/templates/${id}`, template);
+    }
+
+    deleteTemplate(id: string): Observable<void> {
+        return this.http.delete<void>(`${this.API_URL}/templates/${id}`);
+    }
+
     // Sessions
     logSession(session: Omit<WorkoutSession, 'id' | 'userId'>): Observable<{ id: string }> {
         return this.http.post<{ id: string }>(`${this.API_URL}/sessions`, session);

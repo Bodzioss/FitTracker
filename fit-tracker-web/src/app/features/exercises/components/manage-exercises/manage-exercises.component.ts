@@ -1,4 +1,5 @@
 import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
+import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
@@ -13,6 +14,8 @@ import { Observable } from 'rxjs';
 import { map, shareReplay } from 'rxjs/operators';
 import { Exercise } from '../../../../core/models/exercise.model';
 import { ExerciseService } from '../../services/exercise.service';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { ConfirmDialogComponent } from '../../../../shared/components/confirm-dialog/confirm-dialog.component';
 
 @Component({
     selector: 'app-manage-exercises',
@@ -26,14 +29,17 @@ import { ExerciseService } from '../../services/exercise.service';
         MatIconModule,
         MatFormFieldModule,
         MatInputModule,
-        MatTabsModule
+        MatTabsModule,
+        MatDialogModule
     ],
     templateUrl: './manage-exercises.component.html',
     styleUrls: ['./manage-exercises.component.scss']
 })
 export class ManageExercisesComponent implements OnInit {
+    private dialog = inject(MatDialog);
     private exerciseService = inject(ExerciseService);
     private breakpointObserver = inject(BreakpointObserver);
+    private router = inject(Router);
     private fb = inject(NonNullableFormBuilder);
     private cdr = inject(ChangeDetectorRef);
 
@@ -95,14 +101,25 @@ export class ManageExercisesComponent implements OnInit {
     }
 
     deleteExercise(id: string) {
-        if (!confirm('Are you sure you want to delete this exercise?')) return;
+        const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+            data: {
+                title: 'Confirm Delete',
+                message: 'Are you sure you want to delete this exercise?',
+                confirmText: 'Delete',
+                confirmColor: 'warn'
+            }
+        });
 
-        this.exerciseService.deleteExercise(id).subscribe({
-            next: () => {
-                this.loadExercises();
-                this.cdr.detectChanges();
-            },
-            error: (err) => console.error(err)
+        dialogRef.afterClosed().subscribe(result => {
+            if (result) {
+                this.exerciseService.deleteExercise(id).subscribe({
+                    next: () => {
+                        this.loadExercises();
+                        this.cdr.detectChanges();
+                    },
+                    error: (err) => console.error(err)
+                });
+            }
         });
     }
 
@@ -133,5 +150,9 @@ export class ManageExercisesComponent implements OnInit {
         this.cancelEdit(); // Resets form and hides it
         // Consider using SnackBar instead of alert in future
         // alert(message); 
+    }
+
+    goBack(): void {
+        this.router.navigate(['/']);
     }
 }

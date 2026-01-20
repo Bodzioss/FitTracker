@@ -13,8 +13,57 @@ body {
 }
 
 /* Global Card Enhancements */
+/* Global Card Enhancements */
 .mat-mdc-card {
     border-radius: 12px !important;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important;
     background-color: white;
+}
+
+/* Dark Theme */
+body.dark-theme {
+    background-color: #303030;
+    color: #e0e0e0;
+
+    .mat-mdc-card {
+        background-color: #424242;
+        color: #e0e0e0;
+    }
+
+    /* Override Material Text Colors for Dark Mode if needed */
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+        color: #f5f5f5;
+    }
+
+    /* Inputs */
+    .mat-mdc-form-field-input-control {
+        color: white !important;
+    }
+
+    .mat-mdc-select-value {
+        color: white !important;
+    }
+
+    .mat-mdc-select-arrow {
+        color: white !important;
+    }
+
+    /* Expansion Panels */
+    .mat-expansion-panel {
+        background-color: #424242;
+        color: #e0e0e0;
+    }
+
+    .mat-expansion-panel-header-title,
+    .mat-expansion-panel-header-description {
+        color: #e0e0e0;
+    }
+
+    /* Navbar stays primary color (blue) or can be dark too */
+    /* .navbar { background-color: #212121 !important; } */
 }

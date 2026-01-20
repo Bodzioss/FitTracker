@@ -44,6 +44,9 @@
         "SESSION_SAVED": "Trening zapisany! Dobra robota! 💪",
         "HISTORY_TITLE": "Historia Treningów",
         "NO_HISTORY": "Brak zapisanych treningów. Do dzieła!",
-        "UNKNOWN_TEMPLATE": "Trening Dowolny"
+        "UNKNOWN_TEMPLATE": "Trening Dowolny",
+        "EDIT_TITLE": "Edytuj Plan",
+        "CURRENT": "Ten Trening",
+        "LAST_TIME": "Ostatni Trening"
     }
 }

@@ -1,8 +1,9 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
+import { DragDropModule, CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 
 // Material
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -33,7 +34,8 @@ import { Exercise } from '../../../../core/models/exercise.model';
     MatIconModule,
     MatSelectModule,
     MatListModule,
-    MatSnackBarModule
+    MatSnackBarModule,
+    DragDropModule
   ],
   template: `
     <div class="container">
@@ -41,7 +43,7 @@ import { Exercise } from '../../../../core/models/exercise.model';
         <button mat-icon-button (click)="goBack()">
           <mat-icon>arrow_back</mat-icon>
         </button>
-        <h1>{{ 'WORKOUTS.CREATE_TITLE' | translate }}</h1>
+        <h1>{{ (editId ? 'WORKOUTS.EDIT_TITLE' : 'WORKOUTS.CREATE_TITLE') | translate }}</h1>
       </div>
 
       <mat-card>
@@ -72,8 +74,10 @@ import { Exercise } from '../../../../core/models/exercise.model';
             </div>
 
             <!-- Selected Exercises List -->
-            <mat-list *ngIf="selectedExercises.length > 0">
-              <div *ngFor="let ex of selectedExercises; let i = index" class="exercise-item">
+            <div cdkDropList (cdkDropListDropped)="drop($event)" class="drag-list" *ngIf="selectedExercises.length > 0">
+              <div *ngFor="let ex of selectedExercises; let i = index" class="exercise-item" cdkDrag>
+                <mat-icon cdkDragHandle class="drag-handle">drag_indicator</mat-icon>
+                <div class="drag-placeholder" *cdkDragPlaceholder></div>
                 <span class="number">{{ i + 1 }}.</span>
                 <span class="name">{{ ex.name }}</span>
                 <span class="muscle">{{ ex.muscleGroup }}</span>
@@ -81,7 +85,7 @@ import { Exercise } from '../../../../core/models/exercise.model';
                   <mat-icon>delete</mat-icon>
                 </button>
               </div>
-            </mat-list>
+            </div>
 
             <p *ngIf="selectedExercises.length === 0" class="empty-hint">
               {{ 'WORKOUTS.NO_EXERCISES_HINT' | translate }}
@@ -104,24 +108,31 @@ import { Exercise } from '../../../../core/models/exercise.model';
     .full-width { width: 100%; }
     .exercises-section { margin: 2rem 0; }
     .add-row { display: flex; gap: 1rem; align-items: center; .exercise-select { flex-grow: 1; } }
-    .exercise-item { display: flex; align-items: center; padding: 0.8rem; border-bottom: 1px solid #eee; gap: 1rem;
+    .exercise-item { display: flex; align-items: center; padding: 0.8rem; border-bottom: 1px solid #eee; gap: 1rem; background: white;
       .number { font-weight: bold; color: #1976d2; }
       .name { flex-grow: 1; font-weight: 500; }
       .muscle { color: #888; font-size: 0.9rem; }
+      .drag-handle { cursor: move; color: #ccc; }
     }
+    .cdk-drag-preview { box-sizing: border-box; border-radius: 4px; box-shadow: 0 5px 5px -3px rgba(0, 0, 0, 0.2), 0 8px 10px 1px rgba(0, 0, 0, 0.14), 0 3px 14px 2px rgba(0, 0, 0, 0.12); }
+    .cdk-drag-placeholder { opacity: 0; }
+    .cdk-drag-animating { transition: transform 250ms cubic-bezier(0, 0, 0.2, 1); }
+    .drag-list.cdk-drop-list-dragging .exercise-item:not(.cdk-drag-placeholder) { transition: transform 250ms cubic-bezier(0, 0, 0.2, 1); }
     .empty-hint { text-align: center; color: #999; margin: 2rem 0; font-style: italic; }
     .actions { display: flex; justify-content: flex-end; margin-top: 2rem; button { padding: 0.5rem 2rem; } }
   `]
 })
-export class CreateTemplateComponent {
+export class CreateTemplateComponent implements OnInit {
   private fb = inject(NonNullableFormBuilder);
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
   private workoutService = inject(WorkoutService);
   private exerciseService = inject(ExerciseService);
   private snackBar = inject(MatSnackBar);
 
   availableExercises: Exercise[] = [];
   selectedExercises: Exercise[] = [];
+  editId: string | null = null;
 
   form = this.fb.group({
     name: ['', [Validators.required, Validators.minLength(3)]]
@@ -130,7 +141,31 @@ export class CreateTemplateComponent {
   exerciseSelectControl = this.fb.control<Exercise | null>(null);
 
   constructor() {
-    this.exerciseService.getExercises().subscribe(data => this.availableExercises = data);
+    this.exerciseService.getExercises().subscribe(data => {
+      this.availableExercises = data;
+      this.checkEditMode();
+    });
+  }
+
+  ngOnInit() {
+    // Moved logic to constructor/checkEditMode to wait for exercises
+  }
+
+  checkEditMode() {
+    const id = this.route.snapshot.paramMap.get('id');
+    if (id) {
+      this.editId = id;
+      this.workoutService.getTemplates().subscribe(templates => {
+        const template = templates.find(t => t.id === id);
+        if (template) {
+          this.form.patchValue({ name: template.name });
+          // Map exercise IDs back to full Exercise objects
+          this.selectedExercises = template.exerciseIds
+            .map(eid => this.availableExercises.find(ex => ex.id === eid))
+            .filter((ex): ex is Exercise => !!ex);
+        }
+      });
+    }
   }
 
   addExercise() {
@@ -143,6 +178,10 @@ export class CreateTemplateComponent {
 
   removeExercise(index: number) {
     this.selectedExercises.splice(index, 1);
+  }
+
+  drop(event: CdkDragDrop<string[]>) {
+    moveItemInArray(this.selectedExercises, event.previousIndex, event.currentIndex);
   }
 
   goBack() {
@@ -165,18 +204,33 @@ export class CreateTemplateComponent {
     // Let's double check backend payload structure. It is { Name: string, ExerciseIds: string[] }.
     // So the payload is correct.
 
-    this.workoutService.createTemplate({
+    const request = {
       name: template.name,
       exerciseIds: template.exerciseIds
-    }).subscribe({
-      next: () => {
-        this.snackBar.open('Plan utworzony!', 'OK', { duration: 3000 });
-        this.router.navigate(['/workouts']);
-      },
-      error: (err) => {
-        console.error(err);
-        this.snackBar.open('Błąd tworzenia planu', 'OK', { duration: 3000 });
-      }
-    });
+    };
+
+    if (this.editId) {
+      this.workoutService.updateTemplate(this.editId, request).subscribe({
+        next: () => {
+          this.snackBar.open('Plan zaktualizowany!', 'OK', { duration: 3000 });
+          this.router.navigate(['/workouts']);
+        },
+        error: (err) => {
+          console.error(err);
+          this.snackBar.open('Błąd aktualizacji planu', 'OK', { duration: 3000 });
+        }
+      });
+    } else {
+      this.workoutService.createTemplate(request).subscribe({
+        next: () => {
+          this.snackBar.open('Plan utworzony!', 'OK', { duration: 3000 });
+          this.router.navigate(['/workouts']);
+        },
+        error: (err) => {
+          console.error(err);
+          this.snackBar.open('Błąd tworzenia planu', 'OK', { duration: 3000 });
+        }
+      });
+    }
   }
 }

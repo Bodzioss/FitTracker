@@ -1,11 +1,12 @@
-import { Component, signal, inject } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
-import { TranslateService } from '@ngx-translate/core';
+import { NavbarComponent } from './shared/components/navbar/navbar.component';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet],
-  templateUrl: './app.html',
+  imports: [RouterOutlet, NavbarComponent],
+  template: `
+    <app-navbar></app-navbar>
+    <router-outlet></router-outlet>
+  `,
   styleUrl: './app.scss'
 })
 export class App {

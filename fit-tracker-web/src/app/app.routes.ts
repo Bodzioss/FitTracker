@@ -8,6 +8,7 @@ export const routes: Routes = [
     { path: 'measurements', loadComponent: () => import('./features/measurements/components/log-measurements/log-measurements.component').then(m => m.LogMeasurementsComponent) },
     { path: 'workouts', loadComponent: () => import('./features/workouts/components/workout-templates/workout-templates.component').then(m => m.WorkoutTemplatesComponent) },
     { path: 'workouts/create', loadComponent: () => import('./features/workouts/components/create-template/create-template.component').then(m => m.CreateTemplateComponent) },
+    { path: 'workouts/edit/:id', loadComponent: () => import('./features/workouts/components/create-template/create-template.component').then(m => m.CreateTemplateComponent) },
     { path: 'workouts/active/:templateId', loadComponent: () => import('./features/workouts/components/active-workout/active-workout.component').then(m => m.ActiveWorkoutComponent) },
     { path: 'workouts/history', loadComponent: () => import('./features/workouts/components/workout-history/workout-history.component').then(m => m.WorkoutHistoryComponent) }
 ];

@@ -4,6 +4,8 @@ import { Router } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
 import { WorkoutService } from '../../services/workout.service';
 import { WorkoutTemplate } from '../../../../core/models/workout.model';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { ConfirmDialogComponent } from '../../../../shared/components/confirm-dialog/confirm-dialog.component';
 
 // Material
 import { MatCardModule } from '@angular/material/card';
@@ -20,7 +22,9 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
     MatCardModule,
     MatButtonModule,
     MatIconModule,
-    MatProgressSpinnerModule
+    MatIconModule,
+    MatProgressSpinnerModule,
+    MatDialogModule
   ],
   template: `
     <div class="container">
@@ -51,8 +55,16 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
             <mat-card-title>{{ template.name }}</mat-card-title>
             <mat-card-subtitle>{{ template.exerciseIds.length }} {{ 'WORKOUTS.EXERCISES' | translate }}</mat-card-subtitle>
           </mat-card-header>
-          <mat-card-actions align="end">
-            <button mat-button color="primary" (click)="startWorkout(template.id!)">{{ 'WORKOUTS.START' | translate }}</button>
+          <mat-card-actions class="card-actions">
+            <div>
+                 <button mat-icon-button color="primary" (click)="editTemplate(template.id!)">
+                    <mat-icon>edit</mat-icon>
+                 </button>
+                 <button mat-icon-button color="warn" (click)="deleteTemplate(template.id!)">
+                    <mat-icon>delete</mat-icon>
+                 </button>
+            </div>
+            <button mat-raised-button color="primary" (click)="startWorkout(template.id!)">{{ 'WORKOUTS.START' | translate }}</button>
           </mat-card-actions>
         </mat-card>
       </div>
@@ -70,13 +82,16 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
       h3 { margin: 0; color: #666; }
     }
     .template-card { min-height: 160px; }
+    .template-card { min-height: 160px; }
     .loading-shade { display: flex; justify-content: center; padding: 2rem; }
+    .card-actions { display: flex; justify-content: space-between; align-items: center; }
   `]
 })
 export class WorkoutTemplatesComponent implements OnInit {
   private service = inject(WorkoutService);
   private router = inject(Router);
   private cdr = inject(ChangeDetectorRef);
+  private dialog = inject(MatDialog);
 
   templates: WorkoutTemplate[] = [];
   loading = true;
@@ -108,5 +123,32 @@ export class WorkoutTemplatesComponent implements OnInit {
 
   startWorkout(templateId: string) {
     this.router.navigate(['/workouts/active', templateId]);
+  }
+
+  editTemplate(id: string) {
+    this.router.navigate(['/workouts/edit', id]);
+  }
+
+  deleteTemplate(id: string) {
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      data: {
+        title: 'Delete Plan',
+        message: 'Are you sure you want to delete this workout plan?',
+        confirmText: 'Delete',
+        confirmColor: 'warn'
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.service.deleteTemplate(id).subscribe({
+          next: () => {
+            this.templates = this.templates.filter(t => t.id !== id);
+            this.cdr.detectChanges();
+          },
+          error: (err) => console.error(err)
+        });
+      }
+    });
   }
 }
