@@ -1,4 +1,4 @@
 export const environment = {
     production: true,
-    apiUrl: 'https://your-api.railway.app/api'  // Replace with your Railway URL
+    apiUrl: 'https://fittracker-1-qwqn.onrender.com/api'
 };
