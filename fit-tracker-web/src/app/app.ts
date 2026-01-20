@@ -17,8 +17,8 @@ export class App {
   private translate = inject(TranslateService);
 
   constructor() {
-    this.translate.addLangs(['pl', 'en']);
-    this.translate.setDefaultLang('pl');
-    this.translate.use('pl');
+    this.translate.addLangs(['en', 'pl']);
+    this.translate.setDefaultLang('en');
+    this.translate.use('en');
   }
 }
